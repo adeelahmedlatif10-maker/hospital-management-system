@@ -69,7 +69,7 @@ Run the provided batch script; it handles virtualenv creation, dependency instal
 setup.bat
 Option B — Manual
 1.  Clone the repository:
-git clone https://github.com/your-username/Hospital-Management-System-App.git
+git clone https://github.com/adeelahmedlatif10-maker/hospital-management-system.git
 2.  Create and activate a virtual environment:
 python -m venv venv && venv\Scripts\activate
 3.  Install dependencies:
