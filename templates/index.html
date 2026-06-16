@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMS — Hospital Management System</title>
+<script>window._csrftoken = '{{ csrf_token }}';</script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080c12;
+  --surface:   #0f1520;
+  --surface2:  #151d2e;
+  --surface3:  #1a2338;
+  --border:    rgba(255,255,255,.07);
+  --border2:   rgba(255,255,255,.12);
+  --accent:    #00e5b0;
+  --accent-dim:#00e5b022;
+  --accent2:   #3d8bff;
+  --danger:    #ff4a6b;
+  --warn:      #ffb344;
+  --success:   #00e5b0;
+  --text:      #e8f0ff;
+  --text2:     #8896b0;
+  --text3:     #4a5568;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Instrument Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+  --r:         10px;
+  --r-lg:      16px;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; position: relative; z-index: 1;
+}
+#login-screen::before {
+  content: '';
+  position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse, rgba(0,229,176,.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 52px 44px;
+  width: 100%; max-width: 420px;
+  position: relative; z-index: 1;
+  box-shadow: 0 0 0 1px var(--border), 0 40px 80px rgba(0,0,0,.7), 0 0 60px rgba(0,229,176,.04);
+  animation: cardIn .4s cubic-bezier(.16,1,.3,1);
+}
+@keyframes cardIn { from { opacity:0; transform: translateY(24px); } }
+
+.login-logo { text-align: center; margin-bottom: 36px; }
+.login-logo .cross {
+  font-size: 42px; display: block; margin-bottom: 12px;
+  filter: drop-shadow(0 0 20px rgba(0,229,176,.5));
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{filter:drop-shadow(0 0 20px rgba(0,229,176,.4))} 50%{filter:drop-shadow(0 0 32px rgba(0,229,176,.7))} }
+.login-logo h1 { font-family: var(--display); font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
+.login-logo h1 span { color: var(--accent); }
+.login-logo p { font-family: var(--mono); font-size: 11px; color: var(--text2); margin-top: 4px; letter-spacing: .1em; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 11px; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 7px;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--border2); border-radius: var(--r);
+  color: var(--text); font-family: var(--sans); font-size: 14px;
+  padding: 11px 14px; transition: border-color .2s, box-shadow .2s; outline: none;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,229,176,.1);
+}
+.form-group input::placeholder { color: var(--text3); }
+.form-group select option { background: var(--bg); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: var(--r);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; transition: all .18s; white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent); color: #080c12;
+  box-shadow: 0 0 0 0 rgba(0,229,176,.4);
+}
+.btn-primary:hover {
+  background: #00f5be;
+  box-shadow: 0 0 24px rgba(0,229,176,.3);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-danger { background: rgba(255,74,107,.12); color: var(--danger); border: 1px solid rgba(255,74,107,.2); }
+.btn-danger:hover { background: rgba(255,74,107,.2); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-full { width: 100%; justify-content: center; }
+
+#login-err { color: var(--danger); font-size: 12px; text-align: center; margin-top: 10px; display: none; }
+
+.login-hint {
+  text-align: center; margin-top: 18px;
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px;
+}
+.login-hint span { color: var(--accent); }
+
+#app { display: none; position: relative; z-index: 1; }
+.layout { display: flex; height: 100vh; }
+
+.sidebar {
+  width: 228px; min-width: 228px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 0; position: relative; z-index: 10;
+  overflow: hidden;
+}
+.sidebar::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.sidebar-logo {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo h2 {
+  font-family: var(--display); font-size: 17px; font-weight: 800; letter-spacing: -.3px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-logo h2 .hicon { font-size: 18px; filter: drop-shadow(0 0 8px rgba(0,229,176,.5)); }
+.sidebar-logo h2 span { color: var(--accent); }
+.sidebar-logo p { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 3px; letter-spacing: .05em; }
+
+nav { padding: 10px 0; flex: 1; }
+.nav-section {
+  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  color: var(--text3); letter-spacing: .12em; text-transform: uppercase;
+  padding: 12px 20px 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 20px;
+  color: var(--text2); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+  border-left: 2px solid transparent;
+  user-select: none; position: relative;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+.nav-item.active {
+  color: var(--accent); border-left-color: var(--accent);
+  background: linear-gradient(90deg, rgba(0,229,176,.08), transparent);
+}
+.nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+
+.sidebar-bottom {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.user-chip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--r);
+  margin-bottom: 8px;
+}
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #080c12; flex-shrink: 0;
+  font-family: var(--display);
+}
+.user-info-text { overflow: hidden; }
+.user-info-text strong { display: block; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-info-text span { font-family: var(--mono); font-size: 10px; color: var(--text2); }
+
+.main { flex: 1; overflow-y: auto; background: var(--bg); }
+.topbar {
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,18,.85);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.menu-toggle {
+  display: none;
+  border: none;
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  cursor: pointer;
+}
+.menu-toggle:hover {
+  background: var(--surface3);
+}
+.topbar-left h1 { font-family: var(--display); font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.topbar .badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(0,229,176,.2); border-radius: 6px; padding: 3px 10px;
+}
+.topbar-time { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+
+.content { padding: 24px 28px; }
+.page { display: none; animation: pageIn .2s ease; }
+.page.active { display: block; }
+@keyframes pageIn { from { opacity:0; transform: translateY(8px); } }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.stat-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent-color, var(--accent));
+  opacity: .7;
+}
+.stat-card .stat-glow {
+  position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--accent-color, var(--accent));
+  opacity: .05; filter: blur(20px);
+}
+.stat-card .stat-icon { font-size: 22px; margin-bottom: 14px; display: block; }
+.stat-card .stat-val { font-family: var(--display); font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+.stat-card .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 5px; font-weight: 500; }
+
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+}
+.table-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.table-header h3 { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  background: var(--surface2);
+  color: var(--text3); font-family: var(--mono); font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .1em;
+  padding: 9px 16px; text-align: left;
+}
+td { padding: 11px 16px; border-top: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+tr:hover td { background: rgba(255,255,255,.015); }
+.mono { font-family: var(--mono); color: var(--text3); font-size: 11px; }
+
+.badge-status {
+  display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 3px 8px; border-radius: 5px;
+}
+.badge-status.Scheduled { background: rgba(61,139,255,.12); color: var(--accent2); border: 1px solid rgba(61,139,255,.2); }
+.badge-status.Completed { background: rgba(0,229,176,.1); color: var(--accent); border: 1px solid rgba(0,229,176,.2); }
+.badge-status.Cancelled { background: rgba(255,74,107,.1); color: var(--danger); border: 1px solid rgba(255,74,107,.2); }
+.badge-status.Paid      { background: rgba(0,229,176,.1); color: var(--accent); border: 1px solid rgba(0,229,176,.2); }
+.badge-status.Pending   { background: rgba(255,179,68,.1); color: var(--warn); border: 1px solid rgba(255,179,68,.2); }
+.badge-role {
+  font-family: var(--mono); font-size: 10px; padding: 2px 8px;
+  border-radius: 5px; background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(0,229,176,.2);
+}
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(8,12,18,.85); backdrop-filter: blur(8px);
+  z-index: 100; display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px; padding: 28px 28px 24px;
+  width: 100%; max-width: 468px;
+  box-shadow: 0 32px 64px rgba(0,0,0,.8), 0 0 0 1px var(--border);
+  animation: modalIn .22s cubic-bezier(.16,1,.3,1);
+  position: relative;
+}
+@keyframes modalIn { from { transform: translateY(20px) scale(.97); opacity: 0; } }
+.modal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal h2 { font-family: var(--display); font-size: 17px; font-weight: 700; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.modal-close:hover { background: var(--surface3); color: var(--text); }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+#toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 11px 16px;
+  font-size: 13px; min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  animation: toastIn .2s ease;
+  display: flex; align-items: center; gap: 10px;
+}
+@keyframes toastIn { from { opacity:0; transform: translateY(10px) scale(.95); } }
+.toast.success { border-left: 2px solid var(--success); }
+.toast.error   { border-left: 2px solid var(--danger); }
+
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 7px 12px; width: 200px;
+  transition: border-color .2s;
+}
+.search-bar:focus-within { border-color: var(--accent); }
+.search-bar input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-size: 12px; font-family: var(--sans); width: 100%;
+}
+.search-bar input::placeholder { color: var(--text3); }
+.search-bar span { color: var(--text3); font-size: 13px; }
+
+.empty-state { text-align: center; padding: 44px 20px; color: var(--text2); font-size: 13px; }
+.empty-state .empty-icon { font-size: 36px; display: block; margin-bottom: 8px; opacity: .5; }
+
+.log-row { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-top: 1px solid var(--border); font-size: 12px; }
+.log-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.log-user { font-weight: 600; min-width: 90px; }
+.log-action { color: var(--text2); flex: 1; }
+.log-time { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.amount-accent { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+.dash-section-title { font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin: 20px 0 10px; }
+.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.quick-action-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 14px; cursor: pointer; transition: border-color .2s, transform .15s; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.quick-action-card:hover { border-color: var(--border2); transform: translateY(-2px); background: var(--surface2); }
+.quick-action-card .qa-icon { font-size: 20px; }
+.quick-action-card .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.quick-action-card .qa-sub { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+@media (max-width: 1100px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; min-width: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .main { height: auto; }
+  .topbar { flex-wrap: wrap; gap: 10px; }
+  .content { padding: 18px 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .table-wrap { overflow-x: auto; }
+  table { min-width: 720px; }
+  .table-header { flex-wrap: wrap; gap: 8px; }
+  .search-bar { width: 100%; max-width: none; }
+  .modal { max-width: calc(100% - 32px); }
+  .modal-footer { flex-wrap: wrap; }
+  .form-group { margin-bottom: 14px; }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+}
+
+@media (max-width: 880px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    max-width: 80%;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 20;
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .layout { overflow-x: hidden; }
+  .main { position: relative; }
+}
+
+@media (max-width: 680px) {
+  .sidebar { padding-bottom: 12px; }
+  .sidebar-logo { padding: 18px 16px 14px; }
+  .sidebar-logo h2 { font-size: 16px; }
+  .nav-item { padding: 10px 16px; font-size: 12px; }
+  .topbar { padding: 14px 16px; }
+  .topbar-left { width: 100%; flex-wrap: wrap; gap: 10px; }
+  .page { padding: 0; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .table-header { justify-content: space-between; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .modal { padding: 20px 18px 18px; }
+  .modal-top { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .modal-footer { justify-content: stretch; }
+  .modal-footer .btn { width: 100%; }
+  #toast-container { left: 12px; right: 12px; bottom: 12px; }
+}
+
+@media (max-width: 520px) {
+  .search-bar { padding: 8px 10px; }
+  .search-bar input { font-size: 11px; }
+  th, td { padding: 10px 12px; }
+  .form-group input, .form-group select { padding: 10px 12px; }
+  .btn { padding: 9px 14px; font-size: 12px; }
+  .login-card { padding: 32px 24px; }
+  .sidebar-bottom { padding: 12px 14px; }
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="cross">🏥</span>
+      <h1>Hospital Management System</h1>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">Sign In →</button>
+    <p id="login-err">Invalid credentials. Please try again.</p>
+    <div class="login-hint">Default: <span>admin</span> / <span>admin123</span></div>
+  </div>
+</div>
+
+<div id="app">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2><span class="hicon">🏥</span> <span>HMS</span></h2>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-avatar" id="sb-avatar">A</div>
+        <div class="user-info-text">
+          <strong id="sb-username">—</strong>
+          <span id="sb-role">—</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-full" onclick="doLogout()">← Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+        <h1 id="page-title">Dashboard</h1>
+        <span class="badge" id="topbar-role">—</span>
+      </div>
+      <span class="topbar-time" id="topbar-clock"></span>
+    </div>
+    <div class="content">
+
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card" style="--accent-color:#00e5b0">
+            <div class="stat-glow"></div>
+            <span class="stat-icon">🧑‍⚕️</span>
+            <div class="stat-val" id="s-patients">—</div>
+            <div class="stat-lbl">Total Patients</div>
+          </div>
+          <div class="stat-card" style="--accent-color:#3d8bff">
+            <div class="stat-glow" style="background:#3d8bff"></div>
+            <span class="stat-icon">👨‍⚕️</span>
+            <div class="stat-val" id="s-doctors">—</div>
+            <div class="stat-lbl">Doctors</div>
+          </div>
+          <div class="stat-card" style="--accent-color:#ffb344">
+            <div class="stat-glow" style="background:#ffb344"></div>
+            <span class="stat-icon">📅</span>
+            <div class="stat-val" id="s-appts">—</div>
+            <div class="stat-lbl">Appointments Today</div>
+          </div>
+          <div class="stat-card" style="--accent-color:#a78bfa">
+            <div class="stat-glow" style="background:#a78bfa"></div>
+            <span class="stat-icon">🧪</span>
+            <div class="stat-val" id="s-records">—</div>
+            <div class="stat-lbl">Tests Today</div>
+          </div>
+        </div>
+
+        <div class="dash-section-title">⚡ Quick Actions</div>
+        <div class="quick-actions-grid" id="dash-quick-actions"></div>
+
+        <div class="table-wrap" style="margin-top:4px">
+          <div class="table-header">
+            <h3>📅 Today's Appointments</h3>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('appointments')">View All →</button>
+          </div>
+          <table><thead><tr><th>#ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="dash-appts-tbody"><tr><td colspan="5"><div class="empty-state"><span class="empty-icon">📅</span>Loading…</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-patients">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Patients</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" id="patient-search" placeholder="Search..." oninput="filterTable('patients-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" id="btn-add-patient" onclick="openModal('patient')" style="display:none">+ Add Patient</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Blood Group</th><th>Actions</th></tr></thead>
+            <tbody id="patients-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-doctors">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Doctors</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('doctors-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" id="btn-add-doctor" onclick="openModal('doctor')" style="display:none">+ Add Doctor</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Specialization</th><th>Actions</th></tr></thead>
+            <tbody id="doctors-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-appointments">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3 id="appt-page-title">Appointments</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('appointments-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" id="btn-add-appt" onclick="openModal('appointment')" style="display:none">+ Schedule</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="appointments-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-labs">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Laboratories</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('labs-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" id="btn-add-lab" onclick="openModal('lab')" style="display:none">+ Add Lab</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Laboratory Name</th><th>Actions</th></tr></thead>
+            <tbody id="labs-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-records">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Test Records</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('records-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" id="btn-add-record" onclick="openModal('record')">+ Add Record</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Patient</th><th>Lab</th><th>Test</th><th>Blood Group</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="records-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-billing">
+        <div class="stats-grid" style="margin-bottom:20px">
+          <div class="stat-card" style="--accent-color:#00e5b0"><div class="stat-glow"></div><span class="stat-icon">💵</span><div class="stat-val" id="bs-total">—</div><div class="stat-lbl">Total Revenue (Rs)</div></div>
+          <div class="stat-card" style="--accent-color:#3d8bff"><div class="stat-glow" style="background:#3d8bff"></div><span class="stat-icon">✅</span><div class="stat-val" id="bs-received">—</div><div class="stat-lbl">Received (Rs)</div></div>
+          <div class="stat-card" style="--accent-color:#ffb344"><div class="stat-glow" style="background:#ffb344"></div><span class="stat-icon">⏳</span><div class="stat-val" id="bs-pending">—</div><div class="stat-lbl">Pending (Rs)</div></div>
+          <div class="stat-card" style="--accent-color:#a78bfa"><div class="stat-glow" style="background:#a78bfa"></div><span class="stat-icon">🧾</span><div class="stat-val" id="bs-count">—</div><div class="stat-lbl">Total Bills</div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Bills</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('bills-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('bill')">+ Generate Bill</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Patient</th><th>Consultation</th><th>Tests</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="bills-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-users">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>System Users</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('users-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('user')">+ Add User</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-tests">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Tests</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('tests-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('test')">+ Add Test</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Test Name</th><th>Fee (Rs)</th><th>Laboratory</th><th>Actions</th></tr></thead>
+            <tbody id="tests-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="page" id="page-roles">
+        <div class="table-wrap">
+          <div class="table-header">
+            <h3>Roles</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search..." oninput="filterTable('roles-tbody', this.value)"></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('role')">+ Add Role</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Role Name</th><th>Actions</th></tr></thead>
+            <tbody id="roles-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+
+
+  <div class="modal" id="modal-patient">
+    <form id="patient-form" method="POST" action="/patients/add/" onsubmit="return savePatient(event)">
+      {% csrf_token %}
+      <div class="modal-top">
+        <h2 id="patient-modal-title">Add Patient</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <input type="hidden" id="edit-patient-id" name="id">
+      <div class="form-group"><label>Full Name</label><input type="text" id="p-name" name="name" placeholder="e.g. Muhammad Ali"></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Age</label><input type="number" id="p-age" name="age" min="1" max="149" placeholder="25"></div>
+        <div class="form-group"><label>Gender</label>
+          <select id="p-gender" name="gender"><option value="">Select...</option><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Blood Group</label>
+        <select id="p-blood" name="blood"><option value="">Select...</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Patient</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-doctor">
+    <form id="doctor-form" method="POST" action="/doctors/doctors/add-doctor/" onsubmit="return saveDoctor(event)">
+      {% csrf_token %}
+      <div class="modal-top">
+        <h2 id="doctor-modal-title">Add Doctor</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <input type="hidden" id="edit-doctor-id" name="id">
+      <div class="form-group"><label>Doctor Name</label><input type="text" id="d-name" name="name" placeholder="e.g. Dr. Sara Khan"></div>
+      <div class="form-group"><label>Specialization</label><input type="text" id="d-spec" name="specialization" placeholder="e.g. Cardiology"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Doctor</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-appointment">
+    <form id="appointment-form" method="POST" action="/appointments/appointments/book-appointment/" onsubmit="return saveAppointment(event)">
+      {% csrf_token %}
+      <div class="modal-top">
+        <h2 id="appt-modal-title">Schedule Appointment</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <input type="hidden" id="edit-appt-id" name="id">
+      <div class="form-group"><label>Patient</label>
+        <select id="ap-patient" name="patient_id"><option value="">Select Patient...</option></select>
+      </div>
+      <div class="form-group"><label>Doctor</label>
+        <select id="ap-doctor" name="doctor_id"><option value="">Select Doctor...</option></select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="ap-date" name="date"></div>
+      <div class="form-group" id="ap-status-group"><label>Status</label>
+        <select id="ap-status" name="status"><option>Scheduled</option><option>Completed</option><option>Cancelled</option></select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-lab">
+    <form id="lab-form" onsubmit="return saveLab(event)">
+      {% csrf_token %}
+      <div class="modal-top">
+        <h2 id="lab-modal-title">Add Laboratory</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <input type="hidden" id="edit-lab-id" name="id">
+      <div class="form-group"><label>Laboratory Name</label><input type="text" id="l-name" name="lab_name" placeholder="e.g. City Lab Karachi"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Lab</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-record">
+    <form id="record-form" onsubmit="return saveRecord(event)">
+      {% csrf_token %}
+      <input type="hidden" id="edit-record-id" name="record_id">
+      <div class="modal-top">
+        <h2>Add Test Record</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-group"><label>Patient</label>
+        <select id="r-patient" name="patient_id"><option value="">Select Patient...</option></select>
+      </div>
+      <div class="form-group"><label>Doctor</label>
+        <select id="r-doctor" name="doctor_id"><option value="">Select Doctor...</option></select>
+      </div>
+      <div class="form-group"><label>Laboratory</label>
+        <select id="r-lab" name="lab_id"><option value="">Select Lab...</option></select>
+      </div>
+      <div class="form-group"><label>Test</label>
+        <select id="r-test-select" name="test_id">
+          <option value="">Select Test...</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>Blood Group</label>
+          <select id="r-blood" name="blood_group"><option value="">Select...</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Test Date</label><input type="date" id="r-date" name="date"></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>Status</label>
+          <select id="r-status" name="status"><option>PENDING</option><option>INCOMPLETE</option><option>COMPLETED</option></select>
+        </div>
+        <div class="form-group"><label>Result</label>
+          <select id="r-result" name="result"><option>POSITIVE</option><option>NEGATIVE</option><option>INCONCLUSIVE</option><option>NOT DONE</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Record</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-user">
+    <form id="user-form" onsubmit="return saveUser(event)">
+      {% csrf_token %}
+      <input type="hidden" id="edit-user-id" name="user_id">
+      <div class="modal-top">
+        <h2>Add User</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-group"><label>Username</label><input type="text" id="u-name" name="username" placeholder="e.g. dr_ali"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="u-pass" name="password" placeholder="Password"></div>
+      <div class="form-group"><label>Role</label>
+        <select id="u-role" name="role_id">
+          <option value="">Select Role...</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save User</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-bill">
+    <form id="bill-form" onsubmit="saveBill(event); return false;">
+      {% csrf_token %}
+      <div class="modal-top">
+        <h2>Generate Bill</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <input type="hidden" id="edit-bill-id" name="bill_id">
+      <div class="form-group"><label>Patient</label>
+        <select id="b-patient" name="patient_id"><option value="">Select Patient...</option></select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>Consultation Fee (Rs) <span style="font-weight:400;opacity:.6">— optional</span></label><input type="number" id="b-consult" name="consultation_fee" placeholder="0" min="0"></div>
+        <div class="form-group"><label>Test Fee (Rs) <span style="font-weight:400;opacity:.6">— optional</span></label><input type="number" id="b-test" name="test_fee" placeholder="0" min="0"></div>
+      </div>
+      <div class="form-group">
+        <label>Total Amount (Rs)</label>
+        <input type="text" id="b-total" readonly style="opacity:.5;cursor:not-allowed" placeholder="Auto calculated">
+      </div>
+      <div class="form-group"><label>Payment Status</label>
+        <select id="b-status" name="payment_status"><option>Pending</option><option>Paid</option><option>Partial</option></select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Bill</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-role">
+    <form id="role-form" onsubmit="saveRole(event); return false;">
+      {% csrf_token %}
+      <input type="hidden" id="edit-role-id" name="role_id">
+      <div class="modal-top">
+        <h2 id="role-modal-title">Add Role</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Role Name</label>
+        <input type="text" id="ro-name" name="role_name" placeholder="e.g. RECEPTIONIST" style="text-transform:uppercase">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Role</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-test">
+    <form id="test-form" onsubmit="saveTest(event); return false;">
+      {% csrf_token %}
+      <input type="hidden" id="edit-test-id" name="test_id">
+      <div class="modal-top">
+        <h2 id="test-modal-title">Add Test</h2>
+        <button class="modal-close" type="button" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Test Name</label>
+        <input type="text" id="t-name" name="test_name" placeholder="e.g. Blood CBC">
+      </div>
+      <div class="form-group">
+        <label>Test Fee (Rs)</label>
+        <input type="number" id="t-fee" name="test_fee" placeholder="500" min="0">
+      </div>
+      <div class="form-group">
+        <label>Laboratory</label>
+        <select id="t-lab" name="lab_id"><option value="">Select Lab...</option></select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save Test</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+const API = '';
+let currentRole = '', currentUser = '';
+let patientsCache = [], doctorsCache = [], labsCache = [], testsCache = [];
+
+const NAV = {
+  'ADMIN':         [{icon:'📊',label:'Dashboard',page:'dashboard'},{icon:'🧑‍⚕️',label:'Patients',page:'patients'},{icon:'👨‍⚕️',label:'Doctors',page:'doctors'},{icon:'🔬',label:'Laboratories',page:'labs'},{icon:'💊',label:'Tests',page:'tests'},{icon:'📅',label:'Appointments',page:'appointments'},{icon:'🧪',label:'Test Records',page:'records'},{icon:'💰',label:'Billing',page:'billing'},{icon:'🏷️',label:'Roles',page:'roles'},{icon:'👥',label:'Users',page:'users'}],
+  'RECEPTIONIST':  [{icon:'📊',label:'Dashboard',page:'dashboard'},{icon:'🧑‍⚕️',label:'Patients',page:'patients'},{icon:'👨‍⚕️',label:'Doctors',page:'doctors'},{icon:'📅',label:'Appointments',page:'appointments'},{icon:'💰',label:'Billing',page:'billing'}],
+  'LAB TECHNICIAN':[{icon:'📊',label:'Dashboard',page:'dashboard'},{icon:'🔬',label:'Laboratories',page:'labs'},{icon:'💊',label:'Tests',page:'tests'},{icon:'🧪',label:'Test Records',page:'records'}],
+  'STAFF':         [{icon:'📊',label:'Dashboard',page:'dashboard'},{icon:'🧑‍⚕️',label:'Patients',page:'patients'},{icon:'📅',label:'Appointments',page:'appointments'}],
+  'DOCTOR':        [{icon:'📊',label:'Dashboard',page:'dashboard'},{icon:'📅',label:"Today's Appointments",page:'appointments'}],
+};
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('topbar-clock').textContent =
+    now.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'}) + ' · ' +
+    now.toLocaleDateString('en-PK',{day:'numeric',month:'short'});
+}
+setInterval(updateClock, 1000); updateClock();
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim();
+  const password = document.getElementById('login-pass').value.trim();
+  const errEl    = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter username and password.';
+    errEl.style.display = 'block'; return;
+  }
+
+  const btn = document.querySelector('#login-screen .btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  try {
+    const form = new FormData();
+    form.append('username', username);
+    form.append('password', password);
+    const res = await fetch('/users/login/', {method:'POST', body: form,
+      headers:{'X-CSRFToken': getCookie('csrftoken'), 'x-requested-with':'XMLHttpRequest'}});
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      errEl.textContent = data.error || 'Invalid credentials.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Sign In →'; return;
+    }
+
+    currentUser = data.username;
+    currentRole = (data.role_name || '').toUpperCase();
+    bootApp();
+  } catch(e) {
+    errEl.textContent = 'Server unreachable. Check Django is running.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\s*' + name + '\s*=\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+async function doLogout() {
+  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+  try {
+    const form = new FormData();
+    form.append('username', currentUser);
+    await fetch('/users/logout/', {method:'POST', body: form,
+      headers:{'X-CSRFToken': getCookie('csrftoken'), 'x-requested-with':'XMLHttpRequest'}});
+  } catch(e) {}
+  currentUser = ''; currentRole = '';
+  patientsCache = []; doctorsCache = []; labsCache = []; testsCache = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  document.querySelector('#login-screen .btn').textContent = 'Sign In →';
+}
+
+function bootApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('sb-username').textContent = currentUser;
+  document.getElementById('sb-role').textContent = currentRole;
+  document.getElementById('topbar-role').textContent = currentRole;
+  document.getElementById('sb-avatar').textContent = currentUser.charAt(0).toUpperCase();
+  applyRoleUI();
+  buildNav();
+  navigate('dashboard');
+  loadStats();
+  loadDashboardAppts();       
+  buildDashboardActions();
+  startAutoRefresh();
+}
+
+let autoRefreshTimer = null;
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    if (!currentUser) return; 
+    const loaders = {
+      dashboard: () => { loadStats(); loadDashboardAppts(); buildDashboardActions(); },
+      patients:  loadPatients,
+      doctors:   loadDoctors,
+      appointments: loadAppointments,
+      labs:      loadLabs,
+      records:   loadRecords,
+      tests:     loadTests,
+      users:     loadUsers,
+      billing:   () => { loadBilling(); loadBillStats(); },
+      roles:     loadRoles,
+    };
+    if (loaders[currentPage]) loaders[currentPage]();
+  }, 5000);
+}
+
+function applyRoleUI() {
+  const isAdmin      = currentRole === 'ADMIN';
+  const isReception  = currentRole === 'RECEPTIONIST';
+  const isLabTech    = currentRole === 'LAB TECHNICIAN';
+  const isStaff      = currentRole === 'STAFF';
+  const isDoctor     = currentRole === 'DOCTOR';
+
+  const cardPatients = document.getElementById('s-patients')?.closest('.stat-card');
+  const cardDoctors  = document.getElementById('s-doctors')?.closest('.stat-card');
+  if (cardPatients) cardPatients.style.display = isDoctor ? 'none' : '';
+  if (cardDoctors)  cardDoctors.style.display  = isDoctor ? 'none' : '';
+
+  const btnPatient = document.getElementById('btn-add-patient');
+  if (btnPatient) btnPatient.style.display = (isAdmin || isReception || isStaff) ? '' : 'none';
+
+  const btnDoctor = document.getElementById('btn-add-doctor');
+  if (btnDoctor) btnDoctor.style.display = isAdmin ? '' : 'none';
+
+  const btnAppt = document.getElementById('btn-add-appt');
+  if (btnAppt) btnAppt.style.display = (isAdmin || isReception || isStaff) ? '' : 'none';
+
+  const btnLab = document.getElementById('btn-add-lab');
+  if (btnLab) btnLab.style.display = (isAdmin || isLabTech) ? '' : 'none';
+
+  const btnRecord = document.getElementById('btn-add-record');
+  if (btnRecord) btnRecord.style.display = (isAdmin || isLabTech) ? '' : 'none';
+
+  const btnTest = document.querySelector('#page-tests .btn-primary');
+  if (btnTest) btnTest.style.display = (isAdmin || isLabTech) ? '' : 'none';
+
+  const btnBill = document.querySelector('#page-billing .btn-primary');
+  if (btnBill) btnBill.style.display = (isAdmin || isReception) ? '' : 'none';
+
+  const btnUser = document.querySelector('#page-users .btn-primary');
+  if (btnUser) btnUser.style.display = isAdmin ? '' : 'none';
+  const btnRole = document.querySelector('#page-roles .btn-primary');
+  if (btnRole) btnRole.style.display = isAdmin ? '' : 'none';
+}
+
+function buildNav() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  (NAV[currentRole] || []).forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'nav-item'; el.dataset.page = item.page;
+    el.innerHTML = `<span class="icon">${item.icon}</span>${item.label}`;
+    el.onclick = () => navigate(item.page);
+    nav.appendChild(el);
+  });
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('open');
+}
+
+let currentPage = 'dashboard';
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const ni = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (ni) ni.classList.add('active');
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
+  const titles = {dashboard:'Dashboard',patients:'Patients',doctors:'Doctors',appointments:'Appointments',labs:'Laboratories',records:'Test Records',tests:'Tests',users:'Users',billing:'Billing',roles:'Roles'};
+  document.getElementById('page-title').textContent = titles[page] || page;
+  const loaders = {patients:loadPatients,doctors:loadDoctors,appointments:loadAppointments,labs:loadLabs,records:loadRecords,tests:loadTests,users:loadUsers,billing:loadBilling,roles:loadRoles};
+  if (loaders[page]) loaders[page]();
+}
+
+async function apiFetch(path, opts={}) {
+  opts = {...opts};
+  opts.credentials = 'include';
+  opts.method = opts.method || 'GET';
+  opts.headers = opts.headers || {};
+  const isForm = opts.body instanceof FormData;
+  if (opts.body && !isForm) {
+    opts.headers = {'Content-Type':'application/json', ...opts.headers};
+  }
+  const token = getCookie('csrftoken') || window._csrftoken;
+  if (token) opts.headers['X-CSRFToken'] = token;
+  opts.headers['X-Requested-With'] = 'XMLHttpRequest';
+
+  const res = await fetch(API + path, opts);
+  const contentType = res.headers.get('content-type') || '';
+  let data = null;
+
+  if (contentType.includes('application/json')) {
+    data = await res.json().catch(() => null);
+  } else {
+    const text = await res.text();
+    try { data = JSON.parse(text); } catch { data = {text}; }
+  }
+
+  if (!res.ok) {
+    const message = data?.error || data?.detail || data?.text || res.statusText || 'Request failed';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+function buildHiddenInput(name, value) {
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = name;
+  input.value = value;
+  return input;
+}
+
+function postNativeForm(path, values = {}) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = API + path;
+  form.style.display = 'none';
+
+  const token = getCookie('csrftoken');
+  if (token) {
+    form.appendChild(buildHiddenInput('csrfmiddlewaretoken', token));
+  }
+
+  Object.entries(values).forEach(([name, value]) => {
+    form.appendChild(buildHiddenInput(name, String(value ?? '')));
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+async function loadStats() {
+  try {
+    const d = await apiFetch('/dashboard/stats/');
+    document.getElementById('s-patients').textContent = d.patients;
+    document.getElementById('s-doctors').textContent  = d.doctors;
+    document.getElementById('s-appts').textContent    = d.appointments;
+    document.getElementById('s-records').textContent  = d.today_tests ?? d.test_records ?? '—';
+  } catch(e) { ['s-patients','s-doctors','s-appts','s-records'].forEach(id => document.getElementById(id).textContent = '—'); }
+}
+
+async function loadLogs() {
+  try {
+    const logs = await apiFetch('/dashboard/logs/');
+    const el = document.getElementById('logs-tbody');
+    if (!logs.length) { el.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span>No activity yet</div>'; return; }
+    el.innerHTML = logs.slice(0,15).map(l => `
+      <div class="log-row">
+        <div class="log-dot"></div>
+        <span class="log-user">${l.username||'—'}</span>
+        <span class="log-action">${l.action}</span>
+        <span class="log-time">${(l.logged_at||'').slice(0,16)}</span>
+      </div>`).join('');
+  } catch(e) { document.getElementById('logs-tbody').innerHTML = '<div class="log-row" style="color:var(--text3);font-size:12px;justify-content:center">⚡ Connect backend to see logs</div>'; }
+}
+
+async function loadPatients() {
+  try {
+    const data = await apiFetch('/patients/patients/json/');
+    patientsCache = data;
+    renderPatients(data);
+  } catch (e) {
+    document.getElementById('patients-tbody').innerHTML = noBackend(6);
+  }
+}
+
+function renderPatients(data) {
+  data = [...data].sort((a,b)=>(b.PATIENT_ID||0)-(a.PATIENT_ID||0));
+  const canEdit = ['ADMIN','RECEPTIONIST'].includes(currentRole);
+  const canDel = currentRole === 'ADMIN';
+
+  document.getElementById('patients-tbody').innerHTML = data.length
+    ? data.map(p => `
+      <tr>
+        <td class="mono">#${p.PATIENT_ID}</td>
+        <td><strong>${p.PATIENT_NAME ?? p.name ?? '—'}</strong></td>
+        <td>${p.PATIENT_AGE ?? p.age ?? '—'}</td>
+        <td>${p.PATIENT_GENDER ?? p.gender ?? '—'}</td>
+        <td>${p.PATIENT_BLOOD_GROUP ?? p.blood_group ?? 'None'}</td>
+        <td style="display:flex;gap:4px">
+          ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="editPatient(${p.PATIENT_ID})">Edit</button>` : ''}
+          ${canDel ? `<button class="btn btn-danger btn-sm" onclick="deletePatient(${p.PATIENT_ID})">Del</button>` : ''}
+        </td>
+      </tr>
+    `).join('')
+    : `<tr><td colspan="6"><div class="empty-state">No patients found</div></td></tr>`;
+}
+
+function filterTable(tbodyId, query) {
+  document.querySelectorAll(`#${tbodyId} tr`).forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function editPatient(patientId) {
+  const p = patientsCache.find(item => item.PATIENT_ID === patientId);
+  if (!p) return toast('Patient record not found','error');
+
+  openModal('patient');
+  document.getElementById('patient-modal-title').textContent = 'Edit Patient';
+  document.getElementById('edit-patient-id').value = p.PATIENT_ID;
+
+  document.getElementById('p-name').value = p.PATIENT_NAME;
+  document.getElementById('p-age').value = p.PATIENT_AGE;
+
+  const genderSelect = document.getElementById('p-gender');
+  const pg = (p.PATIENT_GENDER||'').toString().trim().toLowerCase();
+  let matched = false;
+  for (let i=0;i<genderSelect.options.length;i++){
+    const opt = genderSelect.options[i];
+    if (opt.value.toString().toLowerCase() === pg || opt.text.toString().toLowerCase() === pg || (pg && opt.text.toString().toLowerCase().startsWith(pg))){ genderSelect.value = opt.value; matched=true; break; }
+  }
+  if(!matched) genderSelect.value = pg ? pg : '';
+  document.getElementById('p-blood').value = p.PATIENT_BLOOD_GROUP || '';
+}
+async function savePatient(event) {
+  if (event) {
+    event.preventDefault();
+    event.returnValue = false;
+  }
+  const id = document.getElementById('edit-patient-id').value;
+  const name = document.getElementById('p-name').value.trim();
+  const age = document.getElementById('p-age').value.trim();
+  const gender = document.getElementById('p-gender').value;
+  const blood = document.getElementById('p-blood').value;
+  if (!name || !age || !gender || !blood) return toast('Fill all patient fields', 'error');
+
+  const form = document.getElementById('patient-form');
+  const data = new FormData(form);
+  const url = API + (id ? `/patients/patients/update/${id}/` : `/patients/add/`);
+
+  try {
+    await apiFetch(url, {method: 'POST', body: data});
+    toast(id ? 'Patient updated!' : 'Patient added!', 'success');
+    closeModal();
+    loadPatients();
+    loadStats();
+  } catch (e) {
+    toast(e.message || 'Unable to save patient', 'error');
+  }
+  return false;
+}
+async function deletePatient(id) {
+  if (!confirm("Delete this patient?")) return;
+
+  try {
+    await apiFetch(`/patients/patients/delete/${id}/`, {method: 'GET'});
+    toast("Patient deleted", "success");
+    loadPatients();
+    loadStats();
+  } catch (e) {
+    toast("Delete failed", "error");
+  }
+}
+
+async function loadDoctors() {
+  try {
+    doctorsCache = await apiFetch('/doctors/doctors/json/');
+    const sortedDocs = [...doctorsCache].sort((a,b)=>(b.DOCTOR_ID||0)-(a.DOCTOR_ID||0));
+    document.getElementById('doctors-tbody').innerHTML = sortedDocs.length
+      ? sortedDocs.map(d => `<tr>
+          <td class="mono">#${d.DOCTOR_ID}</td>
+          <td><strong>${d.DOCTOR_NAME}</strong></td>
+          <td>${d.SPECIALIZATION}</td>
+          <td>${currentRole==='ADMIN' ? `<button class="btn btn-ghost btn-sm" onclick="editDoctor(${d.DOCTOR_ID})">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteDoctor(${d.DOCTOR_ID})">Delete</button>` : ''}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="4"><div class="empty-state"><span class="empty-icon">👨‍⚕️</span>No doctors found</div></td></tr>`;
+  } catch(e) { document.getElementById('doctors-tbody').innerHTML = noBackend(4); }
+}
+
+async function saveDoctor(event) {
+  if (event) {
+    event.preventDefault();
+    event.returnValue = false;
+  }
+  const id = document.getElementById('edit-doctor-id').value;
+  const name = document.getElementById('d-name').value.trim();
+  const spec = document.getElementById('d-spec').value.trim();
+  if (!name || !spec) return toast('Fill all fields','error');
+
+  const form = document.getElementById('doctor-form');
+  const data = new FormData(form);
+  const url = API + (id ? `/doctors/doctors/update-doctors/${id}/` : '/doctors/doctors/add-doctor/');
+
+  try {
+    await apiFetch(url, {method: 'POST', body: data});
+    toast(id ? 'Doctor updated!' : 'Doctor added!', 'success');
+    document.getElementById('doctor-modal-title').textContent = 'Add Doctor';
+    document.getElementById('edit-doctor-id').value = '';
+    closeModal();
+    loadDoctors();
+  } catch (e) {
+    toast(e.message || 'Unable to save doctor','error');
+  }
+  return false;
+}
+
+async function editDoctor(id) {
+  let doctor = doctorsCache.find(d => d.DOCTOR_ID === id);
+  if (!doctor) {
+    doctorsCache = await apiFetch('/doctors/doctors/json/');
+    doctor = doctorsCache.find(d => d.DOCTOR_ID === id);
+  }
+  if (!doctor) return toast('Doctor record not found','error');
+
+  openModal('doctor');
+  document.getElementById('edit-doctor-id').value = doctor.DOCTOR_ID;
+  document.getElementById('d-name').value = doctor.DOCTOR_NAME;
+  document.getElementById('d-spec').value = doctor.SPECIALIZATION;
+  document.getElementById('doctor-modal-title').textContent = 'Edit Doctor';
+}
+
+async function deleteDoctor(id) {
+  if (!confirm('Delete this doctor?')) return;
+  try {
+    await apiFetch(`/doctors/doctors/delete-doctor/${id}/`, {method:'GET'});
+    toast('Doctor deleted','success');
+    loadDoctors();
+  } catch(e) { toast('Delete failed','error'); }
+}
+
+async function loadAppointments() {
+  const isDoctor = currentRole === 'DOCTOR';
+  const endpoint = isDoctor
+    ? '/appointments/appointments/today/json/'
+    : '/appointments/appointments/json/';
+  const titleEl = document.getElementById('appt-page-title');
+  if (titleEl) titleEl.textContent = isDoctor ? "Today's Appointments" : "Appointments";
+  try {
+    let data = await apiFetch(endpoint);
+    data = [...data].sort((a,b)=>(b.APPOINTMENT_ID||0)-(a.APPOINTMENT_ID||0));
+    document.getElementById('appointments-tbody').innerHTML = data.length
+      ? data.map(a => `<tr>
+          <td class="mono">#${a.APPOINTMENT_ID}</td>
+          <td>${a.PATIENT_NAME}</td><td>${a.DOCTOR_NAME}</td>
+          <td class="mono">${a.APPOINTMENT_DATE}</td>
+          <td><span class="badge-status ${a.APPOINTMENT_STATUS}">${a.APPOINTMENT_STATUS}</span></td>
+          <td>${['ADMIN','RECEPTIONIST'].includes(currentRole)?`<button class="btn btn-ghost btn-sm" onclick="editAppointment(${a.APPOINTMENT_ID})">Edit</button> <button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.APPOINTMENT_ID})">Cancel</button>` : ''}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">📅</span>${isDoctor ? 'No appointments today' : 'No appointments'}</div></td></tr>`;
+  } catch(e) { document.getElementById('appointments-tbody').innerHTML = noBackend(6); }
+}
+
+async function openAppointmentModal() {
+  if (!patientsCache.length) patientsCache = await apiFetch('/patients/patients/json/').catch(()=>[]);
+  if (!doctorsCache.length)  doctorsCache  = await apiFetch('/doctors/doctors/json/').catch(()=>[]);
+  document.getElementById('ap-patient').innerHTML = '<option value="">Select Patient...</option>' + patientsCache.map(p=>`<option value="${p.PATIENT_ID}">${p.PATIENT_NAME}</option>`).join('');
+  document.getElementById('ap-doctor').innerHTML  = '<option value="">Select Doctor...</option>'  + doctorsCache.map(d=>`<option value="${d.DOCTOR_ID}">${d.DOCTOR_NAME}</option>`).join('');
+  document.getElementById('ap-status-group').style.display = 'block';
+  document.getElementById('ap-status').value = 'Scheduled';
+  document.getElementById('appt-modal-title').textContent = 'Schedule Appointment';
+  document.getElementById('edit-appt-id').value = '';
+}
+
+function openLabModal() {
+  document.getElementById('lab-modal-title').textContent = 'Add Laboratory';
+  document.getElementById('edit-lab-id').value = '';
+  document.getElementById('l-name').value = '';
+}
+
+async function saveAppointment(event) {
+  if (event) {
+    event.preventDefault();
+    event.returnValue = false;
+  }
+  const pid = document.getElementById('ap-patient').value;
+  const did = document.getElementById('ap-doctor').value;
+  const date = document.getElementById('ap-date').value;
+  const status = document.getElementById('ap-status').value;
+  if (!pid || !did || !date) return toast('Fill all fields','error');
+  const id = document.getElementById('edit-appt-id').value;
+  const form = document.getElementById('appointment-form');
+  const data = new FormData(form);
+  const url = API + (id ? `/appointments/appointments/update-appointment/${id}/` : '/appointments/appointments/book-appointment/');
+
+  try {
+    await apiFetch(url, {method: 'POST', body: data});
+    toast(id ? 'Appointment updated!' : 'Appointment scheduled!','success');
+    document.getElementById('appt-modal-title').textContent = 'Schedule Appointment';
+    document.getElementById('edit-appt-id').value = '';
+    closeModal();
+    loadAppointments();
+  } catch (e) {
+    toast(e.message || 'Unable to save appointment','error');
+  }
+  return false;
+}
+
+async function editAppointment(id) {
+  let appointment = null;
+  const data = await apiFetch(`/appointments/appointments/get-appointment/${id}/`);
+  appointment = data;
+  if (!appointment || !appointment.APPOINTMENT_ID) return toast('Appointment record not found','error');
+
+  openModal('appointment');
+  if (!patientsCache.length) patientsCache = await apiFetch('/patients/patients/json/').catch(()=>[]);
+  if (!doctorsCache.length)  doctorsCache  = await apiFetch('/doctors/doctors/json/').catch(()=>[]);
+  document.getElementById('ap-patient').innerHTML = '<option value="">Select Patient...</option>' + patientsCache.map(p=>`<option value="${p.PATIENT_ID}">${p.PATIENT_NAME}</option>`).join('');
+  document.getElementById('ap-doctor').innerHTML  = '<option value="">Select Doctor...</option>'  + doctorsCache.map(d=>`<option value="${d.DOCTOR_ID}">${d.DOCTOR_NAME}</option>`).join('');
+
+  const appointmentDate = appointment.APPOINTMENT_DATE ? String(appointment.APPOINTMENT_DATE).slice(0,10) : '';
+  const appointmentStatus = appointment.APPOINTMENT_STATUS || 'Scheduled';
+  const statusOptions = ['Scheduled','Completed','Cancelled'];
+
+  document.getElementById('edit-appt-id').value = appointment.APPOINTMENT_ID;
+  document.getElementById('ap-patient').value = appointment.PATIENT_ID;
+  document.getElementById('ap-doctor').value = appointment.DOCTOR_ID;
+  document.getElementById('ap-date').value = appointmentDate;
+  document.getElementById('ap-status').value = statusOptions.includes(appointmentStatus) ? appointmentStatus : 'Scheduled';
+  document.getElementById('appt-modal-title').textContent = 'Edit Appointment';
+  document.getElementById('ap-status-group').style.display = 'block';
+}
+
+async function cancelAppt(id) {
+  if (!confirm('Cancel this appointment?')) return;
+  try {
+    await apiFetch(`/appointments/appointments/delete-appointment/${id}/`, {method:'GET'});
+    toast('Appointment cancelled','success');
+    loadAppointments();
+  } catch(e) {
+    toast('Cancel failed','error');
+  }
+}
+
+async function loadLabs() {
+  try {
+    labsCache = await apiFetch('/labs/labs/json/');
+    const sortedLabs = [...labsCache].sort((a,b)=>(b.LAB_ID||0)-(a.LAB_ID||0));
+    document.getElementById('labs-tbody').innerHTML = sortedLabs.length
+      ? sortedLabs.map(l=>`<tr>
+          <td class="mono">#${l.LAB_ID}</td>
+          <td>${l.LAB_NAME}</td>
+          <td style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-sm" onclick="editLab(${l.LAB_ID})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteLab(${l.LAB_ID})">Delete</button>
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="3"><div class="empty-state"><span class="empty-icon">🔬</span>No labs found</div></td></tr>`;
+  } catch(e) { document.getElementById('labs-tbody').innerHTML = noBackend(3); }
+}
+
+async function saveLab(event) {
+  if (event) event.preventDefault();
+  const id = document.getElementById('edit-lab-id').value;
+  const name = document.getElementById('l-name').value.trim();
+  if (!name) return toast('Enter lab name','error');
+
+  const form = new FormData();
+  form.append('lab_name', name);
+
+  const url = id ? `/labs/laboratory/update-labs/${id}/` : '/labs/laboratory/add-labs/';
+
+  try {
+    await apiFetch(url, {method:'POST', body: form});
+    toast(id ? 'Laboratory updated!' : 'Laboratory added!','success');
+    closeModal();
+    loadLabs();
+  } catch (e) {
+    toast(e.message || 'Unable to save lab','error');
+  }
+  return false;
+}
+
+async function editLab(id) {
+  try {
+    const lab = await apiFetch(`/labs/laboratory/get-labs/${id}/`);
+    if (!lab || !lab.LAB_ID) return toast('Laboratory not found','error');
+
+    openModal('lab');
+    document.getElementById('lab-modal-title').textContent = 'Edit Laboratory';
+    document.getElementById('edit-lab-id').value = lab.LAB_ID;
+    document.getElementById('l-name').value = lab.LAB_NAME;
+  } catch (e) {
+    toast(e.message || 'Unable to load lab','error');
+  }
+}
+
+async function deleteLab(id) {
+  if (!confirm('Delete this laboratory?')) return;
+  try {
+    await apiFetch(`/labs/laboratory/delete-labs/${id}/`, {method:'GET'});
+    toast('Laboratory deleted','success');
+    loadLabs();
+  } catch (e) {
+    toast('Delete failed','error');
+  }
+}
+
+async function loadRecords() {
+  try {
+    let data = await apiFetch('/tests/records/json/');
+    data = [...data].sort((a,b)=>(b.RECORD_ID||0)-(a.RECORD_ID||0));
+    document.getElementById('records-tbody').innerHTML = data.length
+      ? data.map(r=>`<tr>
+          <td class="mono">#${r.RECORD_ID}</td>
+          <td>${r.PATIENT_NAME}</td><td>${r.LAB_NAME}</td>
+          <td>${r.TEST_NAME}</td>
+          <td><span style="font-family:var(--mono);font-size:10px;background:rgba(0,229,176,.08);color:var(--accent);border:1px solid rgba(0,229,176,.15);padding:2px 8px;border-radius:5px">${r.blood_group}</span></td>
+          <td class="mono">${r.TEST_DATE}</td>
+          <td>${['ADMIN','LAB TECHNICIAN'].includes(currentRole)?`<button class="btn btn-ghost btn-sm" onclick="editRecord(${r.RECORD_ID})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.RECORD_ID})">Del</button>`:''}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">🧪</span>No records found</div></td></tr>`;
+  } catch(e) { document.getElementById('records-tbody').innerHTML = noBackend(7); }
+}
+
+async function openRecordModal() {
+  if (!patientsCache.length) patientsCache = await apiFetch('/patients/patients/json/').catch(()=>[]);
+  if (!doctorsCache.length)  doctorsCache  = await apiFetch('/doctors/doctors/json/').catch(()=>[]);
+  if (!labsCache.length)     labsCache     = await apiFetch('/labs/labs/json/').catch(()=>[]);
+  if (!testsCache.length)    testsCache    = await apiFetch('/tests/test/json/').catch(()=>[]);
+  document.getElementById('r-patient').innerHTML    = '<option value="">Select Patient...</option>' + patientsCache.map(p=>`<option value="${p.PATIENT_ID}">${p.PATIENT_NAME}</option>`).join('');
+  document.getElementById('r-doctor').innerHTML     = '<option value="">Select Doctor...</option>'  + doctorsCache.map(d=>`<option value="${d.DOCTOR_ID}">${d.DOCTOR_NAME}</option>`).join('');
+  document.getElementById('r-lab').innerHTML        = '<option value="">Select Lab...</option>'     + labsCache.map(l=>`<option value="${l.LAB_ID}">${l.LAB_NAME}</option>`).join('');
+  document.getElementById('r-test-select').innerHTML = '<option value="">Select Test...</option>'   + testsCache.map(t=>`<option value="${t.TEST_ID}">${t.TEST_NAME}${t.LAB_NAME ? ' — '+t.LAB_NAME : ''}</option>`).join('');
+}
+
+async function saveRecord(event) {
+  if (event) event.preventDefault();
+  const editId = document.getElementById('edit-record-id').value;
+  const pid = document.getElementById('r-patient').value;
+  const did = document.getElementById('r-doctor').value;
+  const lid = document.getElementById('r-lab').value;
+  const testId = document.getElementById('r-test-select').value;
+  const blood = document.getElementById('r-blood').value;
+  const date = document.getElementById('r-date').value;
+  const status = document.getElementById('r-status').value;
+  const result = document.getElementById('r-result').value;
+  if (!pid || !did || !lid || !testId || !blood || !date) return toast('Fill all fields','error');
+
+  const form = new FormData();
+  form.append('patient_id', pid);
+  form.append('doctor_id', did);
+  form.append('lab_id', lid);
+  form.append('test_id', testId);
+  form.append('date', date);
+  form.append('status', status);
+  form.append('result', result);
+  try {
+    if (editId) {
+      await apiFetch(`/tests/records/update-records/${editId}/`, {method:'POST', body: form});
+      toast('Record updated','success');
+      document.getElementById('edit-record-id').value = '';
+      closeModal();
+      loadRecords();
+      return false;
+    }
+
+    await apiFetch('/tests/records/add-records/', {method:'POST', body: form});
+    toast('Test record created!','success');
+    closeModal();
+    loadRecords();
+  } catch (e) {
+    toast(e.message || 'Unable to save record','error');
+  }
+  return false;
+}
+
+async function deleteRecord(id) {
+  if (!confirm('Delete this record?')) return;
+  try {
+    await apiFetch(`/tests/records/delete-records/${id}/`, {method:'GET'});
+    toast('Record deleted','success');
+    loadRecords();
+  } catch(e) {
+    toast('Delete failed','error');
+  }
+}
+
+async function editRecord(id) {
+  try {
+    const rec = await apiFetch(`/tests/records/get-records/${id}/`);
+    if (!rec) return toast('Record not found','error');
+    await openModal('record');
+    document.getElementById('record-form').scrollTop = 0;
+    document.getElementById('edit-record-id').value = rec.RECORD_ID || id;
+    document.getElementById('r-patient').value = rec.PATIENT_ID || '';
+    document.getElementById('r-doctor').value = rec.DOCTOR_ID || '';
+    document.getElementById('r-lab').value = rec.LAB_ID || '';
+    document.getElementById('r-test-select').value = rec.TEST_ID || '';
+    document.getElementById('r-blood').value = rec.BLOOD_GROUP || '';
+    document.getElementById('r-date').value = rec.TEST_DATE ? rec.TEST_DATE.split('T')[0] : '';
+    document.getElementById('r-status').value = rec.STATUS || '';
+    document.getElementById('r-result').value = rec.RESULT || '';
+    document.querySelector('#modal-record .modal-top h2').textContent = 'Edit Test Record';
+  } catch(e) { toast('Unable to load record','error'); }
+}
+
+async function loadUsers() {
+  try {
+    let data = await apiFetch('/users/users/json/');
+    data = [...data].sort((a,b)=>(b.USER_ID||0)-(a.USER_ID||0));
+    document.getElementById('users-tbody').innerHTML = data.length
+      ? data.map(u=>`<tr>
+          <td class="mono">#${u.USER_ID}</td>
+          <td><strong>${u.USER_NAME}</strong></td>
+          <td><span class="badge-role">${u.role}</span></td>
+          <td class="mono">${(u.CREATED_AT||'').slice(0,10)}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="editUser(${u.USER_ID})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.USER_ID})">Delete</button>
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="5"><div class="empty-state"><span class="empty-icon">👥</span>No users found</div></td></tr>`;
+  } catch(e) { document.getElementById('users-tbody').innerHTML = noBackend(5); }
+}
+
+async function openUserModal() {
+  const roles = await apiFetch('/roles/roles/json/').catch(() => []);
+  document.getElementById('u-role').innerHTML = '<option value="">(No Role)</option>' +
+    roles.map(r => `<option value="${r.ROLE_ID}">${r.ROLE_NAME}</option>`).join('');
+}
+
+async function saveUser(event) {
+  if (event) event.preventDefault();
+  const editId = document.getElementById('edit-user-id').value;
+  const name = document.getElementById('u-name').value.trim();
+  const pass = document.getElementById('u-pass').value.trim();
+  const role = document.getElementById('u-role').value;
+  if (!name || !pass) return toast('Fill all fields','error');
+
+  const form = new FormData();
+  form.append('username', name);
+  form.append('password', pass);
+  if (role) form.append('role_id', role);
+
+  try {
+    if (editId) {
+      await apiFetch(`/users/users/update-user/${editId}/`, {method:'POST', body: form});
+      toast('User updated!','success');
+      document.getElementById('edit-user-id').value = '';
+    } else {
+      await apiFetch('/users/users/add-user/', {method:'POST', body: form});
+      toast('User created!','success');
+    }
+    closeModal();
+    loadUsers();
+  } catch (e) {
+    toast(e.message || 'Unable to save user','error');
+  }
+  return false;
+}
+
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  try {
+    await apiFetch(`/users/users/delete-user/${id}/`, {method:'GET'});
+    toast('User deleted','success');
+    loadUsers();
+  } catch(e) {
+    toast('Delete failed','error');
+  }
+}
+async function editUser(id) {
+  try {
+    const u = await apiFetch(`/users/users/get-user/${id}/`);
+    if (!u) return toast('User not found','error');
+    openModal('user');
+    document.getElementById('edit-user-id').value = u.USER_ID || id;
+    document.getElementById('u-name').value = u.USER_NAME || '';
+    document.getElementById('u-pass').value = '';
+    document.getElementById('u-role').value = u.ROLE_ID || '';
+    document.querySelector('#modal-user .modal-top h2').textContent = 'Edit User';
+  } catch(e) { toast('Unable to load user','error'); }
+}
+function openModal(type) {
+  document.querySelectorAll('.modal input:not([type=hidden]), .modal select').forEach(el => el.value = '');
+  document.querySelectorAll('.modal [type=hidden]').forEach(el => el.value = '');
+  document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.add('open');
+
+  const modal = document.getElementById('modal-' + type);
+  modal.style.display = 'block';
+
+  modal.onclick = (e) => e.stopPropagation();
+
+  if (type === 'appointment') openAppointmentModal();
+  if (type === 'record') openRecordModal();
+  if (type === 'bill') openBillModal();
+  if (type === 'user') openUserModal();
+  if (type === 'lab') openLabModal();
+  if (type === 'role') openRoleModal();
+  if (type === 'test') openTestModal();
+}
+function toast(msg, type='success') {
+  const icons = {success:'✅', error:'❌'};
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+
+}
+function noBackend(cols) {
+  return `<tr><td colspan="${cols}" style="text-align:center;padding:32px;color:var(--text3);font-family:var(--mono);font-size:11px">⚡ Start Django backend to load data</td></tr>`;
+}
+
+async function loadBilling() {
+  try {
+    const data = await apiFetch('/payments/bills/');
+    renderBilling(data);
+    loadBillStats();
+  } catch (e) {
+    document.getElementById('bills-tbody').innerHTML = noBackend(8);
+  }
+}
+
+function renderBilling(data) {
+  data = [...data].sort((a,b)=>(b.BILL_ID||0)-(a.BILL_ID||0));
+  document.getElementById('bills-tbody').innerHTML = data.length
+    ? data.map(b => `<tr>
+        <td class="mono">#${b.BILL_ID}</td>
+        <td><strong>${b.PATIENT_NAME}</strong></td>
+        <td class="mono">Rs ${parseFloat(b.CONSULTATION_FEE||0).toLocaleString()}</td>
+        <td class="mono">Rs ${parseFloat(b.TEST_FEE||0).toLocaleString()}</td>
+        <td><span class="amount-accent">Rs ${parseFloat(b.TOTAL_AMOUNT||0).toLocaleString()}</span></td>
+        <td><span class="badge-status ${b.PAYMENT_STATUS}">${b.PAYMENT_STATUS}</span></td>
+        <td class="mono" style="font-size:11px">${b.BILL_DATE}</td>
+        <td>
+          ${b.PAYMENT_STATUS!=='Paid'?`<button class="btn btn-primary btn-sm" onclick="markPaid(${b.BILL_ID})">Mark Paid</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="deleteBill(${b.BILL_ID})">Delete</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="8"><div class="empty-state"><span class="empty-icon">🧾</span>No bills yet</div></td></tr>`;
+}
+
+async function loadBillStats() {
+  try {
+    const s = await apiFetch('/payments/bills/stats/');
+    document.getElementById('bs-total').textContent    = 'Rs ' + (s.total_revenue||0).toLocaleString();
+    document.getElementById('bs-received').textContent = 'Rs ' + (s.received||0).toLocaleString();
+    document.getElementById('bs-pending').textContent  = 'Rs ' + (s.pending||0).toLocaleString();
+    document.getElementById('bs-count').textContent    = s.total_bills || 0;
+  } catch(e) {}
+}
+
+async function openBillModal() {
+  if (!patientsCache.length) patientsCache = await apiFetch('/patients/patients/json/').catch(()=>[]);
+  document.getElementById('b-patient').innerHTML = '<option value="">Select Patient...</option>' + patientsCache.map(p=>`<option value="${p.PATIENT_ID}">${p.PATIENT_NAME}</option>`).join('');
+  document.getElementById('edit-bill-id').value = '';
+  document.getElementById('b-consult').value = '';
+  document.getElementById('b-test').value = '';
+  document.getElementById('b-total').value = '';
+  document.getElementById('b-status').value = 'Pending';
+  ['b-consult','b-test'].forEach(id => {
+    document.getElementById(id).oninput = () => {
+      const c = parseFloat(document.getElementById('b-consult').value)||0;
+      const t = parseFloat(document.getElementById('b-test').value)||0;
+      document.getElementById('b-total').value = 'Rs ' + (c+t).toLocaleString();
+    };
+  });
+}
+
+async function saveBill(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const pid = document.getElementById('b-patient').value;
+  const consult = parseFloat(document.getElementById('b-consult').value)||0;
+  const test = parseFloat(document.getElementById('b-test').value)||0;
+  const status = document.getElementById('b-status').value;
+  if (!pid) return toast('Select a patient','error');
+  if (consult === 0 && test === 0) return toast('At least one fee (Consultation or Test) is required','error');
+  
+  const form = new FormData();
+  form.append('patient_id', pid);
+  form.append('consultation_fee', consult);
+  form.append('test_fee', test);
+  form.append('payment_status', status);
+  try {
+    await apiFetch('/payments/bills/add/', {method:'POST', body: form});
+    toast('Bill generated!','success');
+    closeModal();
+    loadBilling();
+  } catch(e) {
+    toast(e.message || 'Unable to save bill','error');
+  }
+  return false;
+}
+
+async function markPaid(bid) {
+  if (!confirm('Mark this bill as paid?')) return;
+  try {
+    await apiFetch(`/payments/bills/${bid}/paid/`, {method:'POST'});
+    toast('Payment received!','success');
+    loadBilling();
+  } catch(e) {
+    toast(e.message || 'Failed to update','error');
+  }
+}
+
+async function deleteBill(bid) {
+  if (!confirm('Delete this bill?')) return;
+  try {
+    await apiFetch(`/payments/bills/delete/${bid}/`, {method:'POST'});
+    toast('Bill deleted','success');
+    loadBilling();
+  } catch(e) {
+    toast('Delete failed','error');
+  }
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.getElementById('modal-overlay').classList.remove('open'); });
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+window.onload = () => {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+};
+
+
+document.getElementById('modal-overlay').addEventListener('click', closeModal);
+
+async function loadRoles() {
+  try {
+    const data = await apiFetch('/roles/roles/json/');
+    renderRoles(data);
+  } catch(e) {
+    document.getElementById('roles-tbody').innerHTML = noBackend(3);
+  }
+}
+
+function renderRoles(data) {
+  data = [...data].sort((a,b)=>(b.ROLE_ID||0)-(a.ROLE_ID||0));
+  document.getElementById('roles-tbody').innerHTML = data.length
+    ? data.map(r => `<tr>
+        <td class="mono">#${r.ROLE_ID}</td>
+        <td><strong>${r.ROLE_NAME}</strong></td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editRole(${r.ROLE_ID},'${r.ROLE_NAME}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRole(${r.ROLE_ID})">Delete</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="3"><div class="empty-state"><span class="empty-icon">🏷️</span>No roles yet</div></td></tr>`;
+}
+
+function openRoleModal(id='', name='') {
+  document.getElementById('edit-role-id').value = id;
+  document.getElementById('ro-name').value = name;
+  document.getElementById('role-modal-title').textContent = id ? 'Edit Role' : 'Add Role';
+}
+
+async function saveRole(event) {
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  const id = document.getElementById('edit-role-id').value;
+  const name = (document.getElementById('ro-name').value || '').trim();
+  if (!name) return toast('Role name is required', 'error');
+  const form = new FormData();
+  form.append('role_name', name.toUpperCase());
+  try {
+    const url = id ? `/roles/roles/update-role/${id}/` : '/roles/roles/add/';
+    await apiFetch(url, {method: 'POST', body: form});
+    toast(id ? 'Role updated!' : 'Role added!', 'success');
+    closeModal();
+    loadRoles();
+  } catch(e) {
+    toast(e.message || 'Failed to save role', 'error');
+  }
+  return false;
+}
+
+function editRole(id, name) {
+  openModal('role');
+  openRoleModal(id, name);
+}
+
+async function deleteRole(id) {
+  if (!confirm('Delete this role? Users assigned to this role will have their role cleared.')) return;
+  try {
+    await apiFetch(`/roles/roles/delete-role/${id}/`, {method: 'GET'});
+    toast('Role deleted. Affected users now have no role.', 'success');
+    loadRoles();
+    // Refresh users table in background so role column updates
+    if (document.getElementById('page-users') && document.getElementById('page-users').classList.contains('active')) {
+      loadUsers();
+    }
+  } catch(e) {
+    toast(e.message || 'Delete failed', 'error');
+  }
+}
+
+async function loadTests() {
+  try {
+    const data = await apiFetch('/tests/test/json/');
+    renderTests(data);
+  } catch(e) {
+    document.getElementById('tests-tbody').innerHTML = noBackend(5);
+  }
+}
+
+function renderTests(data) {
+  data = [...data].sort((a,b)=>(b.TEST_ID||0)-(a.TEST_ID||0));
+  document.getElementById('tests-tbody').innerHTML = data.length
+    ? data.map(t => `<tr>
+        <td class="mono">#${t.TEST_ID}</td>
+        <td><strong>${t.TEST_NAME}</strong></td>
+        <td class="mono">Rs ${parseFloat(t.TEST_FEE).toLocaleString()}</td>
+        <td>${t.LAB_NAME || '—'}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="editTest(${t.TEST_ID})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTest(${t.TEST_ID})">Delete</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="5"><div class="empty-state"><span class="empty-icon">💊</span>No tests yet</div></td></tr>`;
+}
+
+async function openTestModal() {
+  if (!labsCache.length) labsCache = await apiFetch('/labs/labs/json/').catch(() => []);
+  document.getElementById('t-lab').innerHTML = '<option value="">Select Lab...</option>' +
+    labsCache.map(l => `<option value="${l.LAB_ID}">${l.LAB_NAME}</option>`).join('');
+  document.getElementById('edit-test-id').value = '';
+  document.getElementById('t-name').value = '';
+  document.getElementById('t-fee').value = '';
+  document.getElementById('test-modal-title').textContent = 'Add Test';
+}
+
+async function saveTest(event) {
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  const id = document.getElementById('edit-test-id').value;
+  const name = (document.getElementById('t-name').value || '').trim();
+  const fee = document.getElementById('t-fee').value;
+  const lab = document.getElementById('t-lab').value;
+  if (!name) return toast('Test name is required', 'error');
+  if (!lab) return toast('Select a laboratory', 'error');
+  const form = new FormData();
+  form.append('test_name', name);
+  form.append('test_fee', fee || 0);
+  form.append('lab_id', lab);
+  try {
+    const url = id ? `/tests/test/update-tests/${id}/` : '/tests/test/add-tests/';
+    await apiFetch(url, {method: 'POST', body: form});
+    toast(id ? 'Test updated!' : 'Test added!', 'success');
+    closeModal();
+    loadTests();
+  } catch(e) {
+    toast(e.message || 'Failed to save test', 'error');
+  }
+  return false;
+}
+
+async function editTest(id) {
+  openModal('test');
+  try {
+    const t = await apiFetch(`/tests/test/get-tests/${id}/`);
+    if (!labsCache.length) labsCache = await apiFetch('/labs/labs/json/').catch(() => []);
+    document.getElementById('t-lab').innerHTML = '<option value="">Select Lab...</option>' +
+      labsCache.map(l => `<option value="${l.LAB_ID}" ${l.LAB_ID == t.LAB_ID ? 'selected' : ''}>${l.LAB_NAME}</option>`).join('');
+    document.getElementById('edit-test-id').value = t.TEST_ID;
+    document.getElementById('t-name').value = t.TEST_NAME;
+    document.getElementById('t-fee').value = t.TEST_FEE;
+    document.getElementById('test-modal-title').textContent = 'Edit Test';
+  } catch(e) {
+    toast('Could not load test data', 'error');
+  }
+}
+
+async function deleteTest(id) {
+  if (!confirm('Delete this test?')) return;
+  try {
+    await apiFetch(`/tests/test/delete-test/${id}/`, {method: 'GET'});
+    toast('Test deleted', 'success');
+    loadTests();
+  } catch(e) {
+    toast(e.message || 'Delete failed', 'error');
+  }
+}
+
+function buildDashboardActions() {
+  const container = document.getElementById('dash-quick-actions');
+  if (!container) return;
+  const actions = {
+    'ADMIN': [
+      {icon:'🧑‍⚕️', label:'Add Patient',    sub:'Register new patient',  fn:"openModal('patient')"},
+      {icon:'👨‍⚕️', label:'Add Doctor',     sub:'Register new doctor',   fn:"openModal('doctor')"},
+      {icon:'🔬', label:'Add Laboratory', sub:'Add new lab',           fn:"openModal('lab')"},
+      {icon:'💊', label:'Add Test',       sub:'Create lab test',       fn:"openModal('test')"},
+      {icon:'📅', label:'Appointment',    sub:'Book appointment',       fn:"openModal('appointment')"},
+      {icon:'💰', label:'Generate Bill',  sub:'Create patient bill',    fn:"openModal('bill')"},
+      {icon:'👥', label:'Add User',       sub:'Create system user',     fn:"openModal('user')"},
+    ],
+    'RECEPTIONIST': [
+      {icon:'🧑‍⚕️', label:'Add Patient',  sub:'Register new patient', fn:"openModal('patient')"},
+      {icon:'📅', label:'Appointment',  sub:'Book appointment',      fn:"openModal('appointment')"},
+      {icon:'💰', label:'Generate Bill',sub:'Create patient bill',   fn:"openModal('bill')"},
+    ],
+    'LAB TECHNICIAN': [
+      {icon:'🔬', label:'Add Laboratory',sub:'Add new lab',        fn:"openModal('lab')"},
+      {icon:'💊', label:'Add Test',      sub:'Create lab test',    fn:"openModal('test')"},
+      {icon:'🧪', label:'Add Record',    sub:'Add test record',    fn:"openModal('record')"},
+    ],
+    'STAFF': [
+      {icon:'🧑‍⚕️', label:'Add Patient', sub:'Register new patient', fn:"openModal('patient')"},
+      {icon:'📅', label:'Appointment', sub:'Book appointment',      fn:"openModal('appointment')"},
+    ],
+    'DOCTOR': [
+      {icon:'📅', label:"Today's Appts", sub:'View today schedule', fn:"navigate('appointments')"},
+    ],
+  };
+  const list = actions[currentRole] || actions['ADMIN'];
+  container.innerHTML = list.map(a => `
+    <div class="quick-action-card" onclick="${a.fn}">
+      <span class="qa-icon">${a.icon}</span>
+      <span class="qa-label">${a.label}</span>
+      <span class="qa-sub">${a.sub}</span>
+    </div>`).join('');
+}
+
+
+async function loadDashboardAppts() {
+  const tb = document.getElementById('dash-appts-tbody');
+  if (!tb) return;
+  try {
+    const data = await apiFetch('/appointments/appointments/today/json/');
+    tb.innerHTML = data.length
+      ? data.slice(0, 5).map(a => `<tr>
+          <td class="mono">#${a.APPOINTMENT_ID}</td>
+          <td>${a.PATIENT_NAME}</td>
+          <td>${a.DOCTOR_NAME}</td>
+          <td class="mono">${a.APPOINTMENT_DATE}</td>
+          <td><span class="badge-status ${a.APPOINTMENT_STATUS}">${a.APPOINTMENT_STATUS}</span></td>
+        </tr>`).join('')
+      : '<tr><td colspan="5"><div class="empty-state"><span class="empty-icon">📅</span>No appointments today</div></td></tr>';
+  } catch(e) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">⚡ Backend required</td></tr>';
+  }
+}
+
+function closeModal(e) {
+  const overlay = document.getElementById('modal-overlay');
+
+  if (e && e.target !== overlay) return;
+
+  overlay.classList.remove('open');
+}
+</script>
+</body>
+</html>
